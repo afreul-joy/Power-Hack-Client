@@ -1,9 +1,30 @@
+import axios from 'axios';
+import { useEffect, useState } from 'react';
+
 function BillingTable() {
-  const data = [
-    { id: 1, fullName: 'John Doe', email: 'johndoe@example.com', phone: '1234567890', paidAmount: 100, },
-    { id: 2, fullName: 'Jane Smith', email: 'janesmith@example.com', phone: '9876543210', paidAmount: 150, },
-    // Add more data objects as needed
-  ];
+  const [data, setData] = useState({});
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get('http://localhost:3000/api/billing-list');
+        console.log(response.data); // Check the value of data
+        setData(response.data.data);
+        setLoading(false);
+      } catch (error) {
+        console.error('Failed to fetch data:', error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+  
+
 
   return (
     <div>
@@ -19,13 +40,14 @@ function BillingTable() {
           </tr>
         </thead>
         <tbody>
-          {data.map((item) => (
-            <tr key={item.id}>
-              <td className="border border-gray-300 px-4 py-2">{item.id}</td>
-              <td className="border border-gray-300 px-4 py-2">{item.fullName}</td>
+        {Array.isArray(data) && data.length > 0 ? (
+            data.map((item) => (
+              <tr key={item._id}>
+              <td className="border border-gray-300 px-4 py-2">{item._id}</td>
+              <td className="border border-gray-300 px-4 py-2">{item.name}</td>
               <td className="border border-gray-300 px-4 py-2">{item.email}</td>
               <td className="border border-gray-300 px-4 py-2">{item.phone}</td>
-              <td className="border border-gray-300 px-4 py-2">{item.paidAmount}</td>
+              <td className="border border-gray-300 px-4 py-2">{item.amount}</td>
               <td className="border border-gray-300 px-4 py-2">
                 <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-2">
                   Edit
@@ -35,9 +57,16 @@ function BillingTable() {
                 </button>
               </td>
             </tr>
-          ))}
+            ))
+          ) : (
+            <tr>
+              <td colSpan="6">No data available</td>
+            </tr>
+          )}
+
         </tbody>
       </table>
+
     </div>
   );
 }
