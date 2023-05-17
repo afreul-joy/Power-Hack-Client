@@ -1,5 +1,5 @@
-import axios from 'axios';
-import { useEffect, useState } from 'react';
+import axios from "axios";
+import { useEffect, useState } from "react";
 
 function BillingTable() {
   const [data, setData] = useState({});
@@ -8,12 +8,14 @@ function BillingTable() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get('http://localhost:3000/api/billing-list');
+        const response = await axios.get(
+          "http://localhost:3000/api/billing-list"
+        );
         console.log(response.data); // Check the value of data
         setData(response.data.data);
         setLoading(false);
       } catch (error) {
-        console.error('Failed to fetch data:', error);
+        console.error("Failed to fetch data:", error);
       }
     };
 
@@ -23,8 +25,6 @@ function BillingTable() {
   if (loading) {
     return <div>Loading...</div>;
   }
-  
-
 
   return (
     <div>
@@ -40,33 +40,39 @@ function BillingTable() {
           </tr>
         </thead>
         <tbody>
-        {Array.isArray(data) && data.length > 0 ? (
+          {Array.isArray(data) && data.length > 0 ? (
             data.map((item) => (
               <tr key={item._id}>
-              <td className="border border-gray-300 px-4 py-2">{item._id}</td>
-              <td className="border border-gray-300 px-4 py-2">{item.name}</td>
-              <td className="border border-gray-300 px-4 py-2">{item.email}</td>
-              <td className="border border-gray-300 px-4 py-2">{item.phone}</td>
-              <td className="border border-gray-300 px-4 py-2">{item.amount}</td>
-              <td className="border border-gray-300 px-4 py-2">
-                <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-2">
-                  Edit
-                </button>
-                <button className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
-                  Delete
-                </button>
-              </td>
-            </tr>
+                <td className="border border-gray-300 px-4 py-2">{item._id}</td>
+                <td className="border border-gray-300 px-4 py-2">
+                  {item.name}
+                </td>
+                <td className="border border-gray-300 px-4 py-2">
+                  {item.email}
+                </td>
+                <td className="border border-gray-300 px-4 py-2">
+                  {item.phone}
+                </td>
+                <td className="border border-gray-300 px-4 py-2">
+                  {item.amount}
+                </td>
+                <td className="border border-gray-300 px-4 py-2">
+                  <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-2">
+                    Edit
+                  </button>
+                  <button className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
+                    Delete
+                  </button>
+                </td>
+              </tr>
             ))
           ) : (
             <tr>
               <td colSpan="6">No data available</td>
             </tr>
           )}
-
         </tbody>
       </table>
-
     </div>
   );
 }
