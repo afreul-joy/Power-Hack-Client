@@ -1,5 +1,5 @@
-import { useState } from "react";
-import BillingTable from "./BillingTable/BillingTable";
+import { useEffect, useState } from "react";
+import axios from "axios";
 
 const Billing = () => {
   const [isModalOpen, setModalOpen] = useState(false);
@@ -9,11 +9,18 @@ const Billing = () => {
     phone: "",
     amount: "",
   });
+  const [tableData, setTableData] = useState([]);
+  const [isLoading, setLoading] = useState(false);
+  const [selectedItemId, setSelectedItemId] = useState(null);
 
-  const handleModal = () => {
+  const handleModal = (id = null) => {
+    setSelectedItemId(id);
     setModalOpen(true);
   };
 
+  const handleBill = () => {
+    setModalOpen(true);
+  };
   const handleCloseModal = () => {
     setModalOpen(false);
   };
@@ -22,11 +29,69 @@ const Billing = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle form submission here, e.g., send data to server or update state
-    console.log(formData);
-    setModalOpen(false);
+    try {
+      setLoading(true);
+      if (selectedItemId) {
+        const url = `http://localhost:3000/api/update-billing/${selectedItemId}`;
+        const response = await axios.put(url, formData);
+
+        setFormData({
+          name: "",
+          email: "",
+          phone: "",
+          amount: "",
+        });
+        console.log(response.data);
+      } else {
+        const url = "http://localhost:3000/api/add-billing";
+        const response = await axios.post(url, formData);
+        console.log(response.data);
+      }
+
+
+      setModalOpen(false);
+      setSelectedItemId(null); // Reset the selected item ID 
+
+      const response = await axios.get( "http://localhost:3000/api/billing-list");
+      setTableData(response.data.data);
+    } catch (error) {
+      console.error("Error:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /// ----------get---------
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get(
+          "http://localhost:3000/api/billing-list"
+        );
+        setTableData(response.data.data);
+      } catch (error) {
+        console.error("Failed to fetch data:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  //----------------------- DELETE---------
+
+  const handleDelete = async (id) => {
+    console.log(id);
+    try {
+      let response = await axios.delete(
+        `http://localhost:3000/api/delete-billing/${id}`
+      );
+      response = await axios.get("http://localhost:3000/api/billing-list");
+      setTableData(response.data.data);
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   return (
@@ -41,7 +106,7 @@ const Billing = () => {
           />
         </div>
         <button
-          onClick={handleModal}
+          onClick={handleBill}
           className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
         >
           Add Bill
@@ -118,7 +183,71 @@ const Billing = () => {
         </>
       )}
 
-      <BillingTable />
+      <table className="border border-gray-300 mx-auto container">
+        <thead>
+          <tr>
+            <th className="border border-gray-300 px-4 py-2">Billing ID</th>
+            <th className="border border-gray-300 px-4 py-2">Full Name</th>
+            <th className="border border-gray-300 px-4 py-2">Email</th>
+            <th className="border border-gray-300 px-4 py-2">Phone</th>
+            <th className="border border-gray-300 px-4 py-2">Paid Amount</th>
+            <th className="border border-gray-300 px-4 py-2">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {isLoading ? (
+            <tr>
+              <td className="border border-gray-300 px-4 py-2" colSpan="6">
+                Loading..
+              </td>
+            </tr>
+          ) : (
+            <>
+              {Array.isArray(tableData) && tableData.length > 0 ? (
+                tableData.map((item) => (
+                  <tr key={item._id}>
+                    <td className="border border-gray-300 px-4 py-2">
+                      {isLoading ? <div>Generating Id...</div> : item._id}
+                    </td>
+                    <td className="border border-gray-300 px-4 py-2">
+                      {" "}
+                      {item.name}
+                    </td>
+                    <td className="border border-gray-300 px-4 py-2">
+                      {item.email}
+                    </td>
+                    <td className="border border-gray-300 px-4 py-2">
+                      {item.phone}
+                    </td>
+                    <td className="border border-gray-300 px-4 py-2">
+                      {item.amount}
+                    </td>
+                    <td className="border border-gray-300 px-4 py-2">
+                      <button
+                        onClick={() => handleModal(item._id)}
+                        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-2"
+                      >
+                        Edit
+                      </button>
+
+                      <button
+                        onClick={() => handleDelete(item._id)}
+                        className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="6">No data available</td>
+                </tr>
+              )}
+            </>
+          )}
+        </tbody>
+      </table>
     </div>
   );
 };
