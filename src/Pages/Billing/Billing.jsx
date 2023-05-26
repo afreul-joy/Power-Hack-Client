@@ -14,18 +14,45 @@ const Billing = () => {
   const [selectedItemId, setSelectedItemId] = useState(null);
 
   const handleModal = (id = null) => {
+    if (id) {
+      // Find the selected item from the table data
+      const selectedItem = tableData.find((item) => item._id === id);
+      if (selectedItem) {
+        setFormData({
+          name: selectedItem.name,
+          email: selectedItem.email,
+          phone: selectedItem.phone,
+          amount: selectedItem.amount,
+        });
+      }
+    } else {
+      setFormData({
+        name: "",
+        email: "",
+        phone: "",
+        amount: "",
+      });
+    }
     setSelectedItemId(id);
     setModalOpen(true);
   };
+  
 
   const handleBill = () => {
     setModalOpen(true);
+    setFormData({
+      name: "",
+      email: "",
+      phone: "",
+      amount: "",
+    });
   };
   const handleCloseModal = () => {
     setModalOpen(false);
   };
 
   const handleChange = (e) => {
+    //console.log(e.target.value, e.target.name);
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
@@ -33,29 +60,33 @@ const Billing = () => {
     e.preventDefault();
     try {
       setLoading(true);
+
+      // ---------------  PUT--------------------------------
       if (selectedItemId) {
+
         const url = `http://localhost:3000/api/update-billing/${selectedItemId}`;
         const response = await axios.put(url, formData);
 
-        setFormData({
-          name: "",
-          email: "",
-          phone: "",
-          amount: "",
-        });
-        console.log(response.data);
-      } else {
-        const url = "http://localhost:3000/api/add-billing";
-        const response = await axios.post(url, formData);
+        if (response.data.success) {
+          // Add the new record to the table data
+          setTableData((prevData) => [...prevData, response.data.data]);
+        }
+
         console.log(response.data);
       }
-
-
+      //--------------------- POST------------------
+      else {
+        const url = "http://localhost:3000/api/add-billing";
+        const response = await axios.post(url, formData);
+        if (response.data.success) {
+        // Add the new record to the form data
+        setFormData(response.data.data);
+          // Add the new record to the table data
+          setTableData((prevData) => [...prevData, response.data.data]);
+        }
+      }
       setModalOpen(false);
-      setSelectedItemId(null); // Reset the selected item ID 
-
-      const response = await axios.get( "http://localhost:3000/api/billing-list");
-      setTableData(response.data.data);
+      setSelectedItemId(null); // Reset the selected item ID
     } catch (error) {
       console.error("Error:", error);
     } finally {
@@ -63,32 +94,29 @@ const Billing = () => {
     }
   };
 
-  /// ----------get---------
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await axios.get(
-          "http://localhost:3000/api/billing-list"
-        );
-        setTableData(response.data.data);
-      } catch (error) {
-        console.error("Failed to fetch data:", error);
-      }
-    };
+ // ----------get---------
+ const getData = async () => {
+  try {
+    const response = await axios.get("http://localhost:3000/api/billing-list");
+    setTableData(response.data.data);
+  } catch (error) {
+    console.error("Failed to fetch data:", error);
+  }
+};
 
-    fetchData();
-  }, []);
+// Re render useEffect is very important for newly added record
+useEffect(() => {  
+  getData();
+}, [tableData]);
+
 
   //----------------------- DELETE---------
 
   const handleDelete = async (id) => {
-    console.log(id);
     try {
-      let response = await axios.delete(
-        `http://localhost:3000/api/delete-billing/${id}`
-      );
-      response = await axios.get("http://localhost:3000/api/billing-list");
-      setTableData(response.data.data);
+      await axios.delete(`http://localhost:3000/api/delete-billing/${id}`);
+      // Remove the deleted record from the table data
+      setTableData((prevData) => prevData.filter((item) => item._id !== id));
     } catch (error) {
       console.log(error);
     }
@@ -183,6 +211,7 @@ const Billing = () => {
         </>
       )}
 
+      {/* ---------TABLE---------   */}
       <table className="border border-gray-300 mx-auto container">
         <thead>
           <tr>
