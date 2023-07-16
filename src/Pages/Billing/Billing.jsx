@@ -64,7 +64,7 @@ const Billing = () => {
       // ---------------  PUT--------------------------------
       if (selectedItemId) {
 
-        const url = `http://localhost:3000/api/update-billing/${selectedItemId}`;
+        const url = `http://localhost:4000/api/update-billing/${selectedItemId}`;
         const response = await axios.put(url, formData);
 
         if (response.data.success) {
@@ -76,7 +76,7 @@ const Billing = () => {
       }
       //--------------------- POST------------------
       else {
-        const url = "http://localhost:3000/api/add-billing";
+        const url = "http://localhost:4000/api/add-billing";
         const response = await axios.post(url, formData);
         if (response.data.success) {
         // Add the new record to the form data
@@ -97,7 +97,7 @@ const Billing = () => {
  // ----------get---------
  const getData = async () => {
   try {
-    const response = await axios.get("http://localhost:3000/api/billing-list");
+    const response = await axios.get("http://localhost:4000/api/billing-list");
     setTableData(response.data.data);
   } catch (error) {
     console.error("Failed to fetch data:", error);
@@ -114,7 +114,7 @@ useEffect(() => {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`http://localhost:3000/api/delete-billing/${id}`);
+      await axios.delete(`http://localhost:4000/api/delete-billing/${id}`);
       // Remove the deleted record from the table data
       setTableData((prevData) => prevData.filter((item) => item._id !== id));
     } catch (error) {
@@ -146,7 +146,7 @@ useEffect(() => {
           <div className="fixed inset-0 bg-black opacity-50 z-20"></div>
           <div className="fixed inset-0 flex items-center justify-center z-30">
             <div className="bg-white p-4 shadow-lg rounded">
-              <h2 className="text-2xl font-bold mb-4">Add Bill</h2>
+            <h2 className="text-2xl font-bold mb-4">{selectedItemId !== null ? 'Edit' : 'ADD'}</h2>
               <form onSubmit={handleSubmit}>
                 <div className="flex flex-col mb-4">
                   <label htmlFor="name">Name:</label>
@@ -236,7 +236,7 @@ useEffect(() => {
                 tableData.map((item) => (
                   <tr key={item._id}>
                     <td className="border border-gray-300 px-4 py-2">
-                      {isLoading ? <div>Generating Id...</div> : item._id}
+                      {isLoading ? <h2>Generating Id...</h2> : item._id}
                     </td>
                     <td className="border border-gray-300 px-4 py-2">
                       {" "}
@@ -270,13 +270,14 @@ useEffect(() => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="6">No data available</td>
+                  <td colSpan="6">Loading....</td>
                 </tr>
               )}
             </>
           )}
         </tbody>
       </table>
+    
     </div>
   );
 };

@@ -8,7 +8,7 @@ function BillingTable() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get('http://localhost:3000/api/billing-list');
+        const response = await axios.get('http://localhost:4000/api/billing-list');
         console.log(response.data); // Check the value of data
         setData(response.data.data);
         setLoading(false);
