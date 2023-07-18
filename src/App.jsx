@@ -5,20 +5,31 @@ import Header from "./Components/Header/Header";
 import Footer from "./Components/Footer/Footer";
 import NotFound from "./Pages/NotFound/NotFound";
 import Billing from "./Pages/Billing/Billing";
+import Login from "./Components/Authentication/Login/Login";
+import Register from "./Components/Authentication/Register/Register";
+import UserProvider from "./context/userContext";
+import ProtectedRoute from "./Components/Authentication/ProtectedRoute/ProtectedRoute";
 
 function App() {
   return (
     <>
-      <Header />
+      <UserProvider>
+        <Header />
 
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/billing" element={<Billing />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+        <Routes>
+          <Route path="/" element={<Home />} />
 
-      <Footer />
+          <Route element={<ProtectedRoute />}>
+            <Route path="/billing" element={<Billing />} />
+            <Route path="/about" element={<About />} />
+          </Route>
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+
+        <Footer />
+      </UserProvider>
     </>
   );
 }

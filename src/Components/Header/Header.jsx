@@ -1,7 +1,16 @@
-import React from "react";
+import { useContext } from "react";
 import { Link } from "react-router-dom";
+import { UserContext } from "../../context/userContext";
 
 const Header = () => {
+  const { user, setUser } = useContext(UserContext);
+  console.log(user);
+
+  const handleLogout = () => {
+    setUser(null); // Clear the user state
+    localStorage.removeItem("token"); // Remove the token from localStorage
+  };
+
   return (
     <nav className="bg-white shadow-lg">
       <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
@@ -13,7 +22,6 @@ const Header = () => {
                 src="https://cdn.dribbble.com/userupload/3158903/file/original-3f5abe8b99ff4ba4626ddf6660115182.jpg?compress=1&resize=1024x768"
                 alt="Logo"
               />
-
               <span className="text-lg font-semibold">Power Pack</span>
             </div>
           </Link>
@@ -40,12 +48,25 @@ const Header = () => {
             >
               Billing
             </Link>
-            <Link
-              to="/login"
-              className=" hover:bg-red-700 bg-red-400 text-white px-3 py-2 rounded-md text-sm font-medium"
-            >
-              Login
-            </Link>
+
+            {user ? (
+              <>
+                <p> {user.email} </p>
+                <button
+                  onClick={handleLogout}
+                  className="hover:bg-red-700 bg-red-400 text-white px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <Link
+                to="/login"
+                className="hover:bg-red-700 bg-red-400 text-white px-3 py-2 rounded-md text-sm font-medium"
+              >
+                Login
+              </Link>
+            )}
           </div>
         </div>
       </div>
