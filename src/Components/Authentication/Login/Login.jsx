@@ -1,17 +1,17 @@
-import { useContext, useState } from "react";
+import { useState } from "react";
 import axios from "axios";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { UserContext } from "../../../context/userContext";
 import jwtDecode from "jwt-decode";
+import useAuth from "../../../hooks/useAuth";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
   const location = useLocation();
-  const { setUser } = useContext(UserContext); // setUser is a function that will update the user state
+  const { setUser } = useAuth(); // setUser is a function that will update the user state
 
-  async function loginUser(event) {
+  const loginUser = async (event) => {
     event.preventDefault();
 
     try {
@@ -21,7 +21,6 @@ const Login = () => {
       });
 
       const { status, JWT_TOKEN } = response.data;
-      console.log(response.data);
       if (status === "valid user") {
         localStorage.setItem("token", JWT_TOKEN);
 
@@ -31,11 +30,14 @@ const Login = () => {
           email: decodedToken.email,
           // Add other user information you want to extract from the token
         };
+
+        // Redirect the user to the requested page or a default page if no specific page is requested
         if (location.state?.from) {
           navigate(location.state.from);
         } else {
-          navigate("/"); // Redirect to a default page if no specific page is requested
+          navigate("/");
         }
+
         setUser(user);
         alert("Login successful");
       } else {
@@ -44,7 +46,7 @@ const Login = () => {
     } catch (error) {
       console.error("Login error:", error);
     }
-  }
+  };
 
   return (
     <div className="max-w-md my-3 mx-auto p-6 bg-white rounded-lg shadow">
@@ -90,7 +92,7 @@ const Login = () => {
             Login
           </button>
           <p>
-            <span className=" text-yellow-700 "> New User? </span>
+            <span className="text-yellow-700"> New User? </span>
             <Link
               to="/register"
               className="text-gray-600 hover:text-indigo-600"

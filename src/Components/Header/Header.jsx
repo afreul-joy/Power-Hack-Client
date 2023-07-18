@@ -1,11 +1,9 @@
-import { useContext } from "react";
 import { Link } from "react-router-dom";
-import { UserContext } from "../../context/userContext";
+import useAuth from "../../hooks/useAuth";
 
 const Header = () => {
-  const { user, setUser } = useContext(UserContext);
+  const { user, setUser } = useAuth();
   console.log(user);
-
   const handleLogout = () => {
     setUser(null); // Clear the user state
     localStorage.removeItem("token"); // Remove the token from localStorage

@@ -8,7 +8,7 @@ const Register = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  async function registerUser(event) {
+  const registerUser = async (event) => {
     event.preventDefault();
 
     try {
@@ -17,7 +17,6 @@ const Register = () => {
         email,
         password,
       });
-      console.log(response);
       const { status } = response;
 
       if (status === 200) {
@@ -27,7 +26,7 @@ const Register = () => {
     } catch (error) {
       console.error("Registration error:", error);
     }
-  }
+  };
 
   return (
     <div className="max-w-md my-3 mx-auto p-6 bg-white rounded-lg shadow">

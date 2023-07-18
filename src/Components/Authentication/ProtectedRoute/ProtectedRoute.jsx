@@ -1,10 +1,10 @@
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
-import { useContext, useEffect } from "react";
-import { UserContext } from "../../../context/userContext";
+import { useEffect } from "react";
+import useAuth from "../../../hooks/useAuth";
 
 const ProtectedRoute = () => {
   const navigate = useNavigate();
-  const { user, loading } = useContext(UserContext);
+  const { user, loading } = useAuth();
   const location = useLocation();
 
   useEffect(() => {
