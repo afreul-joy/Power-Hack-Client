@@ -1,22 +1,27 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import axios from "axios";
+import { PaidAmountContext } from "../../context/PaidAmountContext";
 
 const Billing = () => {
-  const [isModalOpen, setModalOpen] = useState(false);
+  // State variables
+  const [isModalOpen, setModalOpen] = useState(false); // Modal state
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     phone: "",
     amount: "",
-  });
-  const [tableData, setTableData] = useState([]);
-  const [isLoading, setLoading] = useState(false);
-  const [selectedItemId, setSelectedItemId] = useState(null);
+  }); // Form data state
+  const [data,setData] = useState([]); // Billing data state
+  const [isLoading, setLoading] = useState(false); // Loading state
+  const [selectedItemId, setSelectedItemId] = useState(null); // Selected item ID state
+  const { addToTotalPaidAmount } = useContext(PaidAmountContext); // PaidAmountContext for updating total paid amount
+  const { subtractFromTotalPaidAmount} = useContext(PaidAmountContext);
 
+  // Open the modal and populate the form data with the selected item
   const handleModal = (id = null) => {
     if (id) {
       // Find the selected item from the table data
-      const selectedItem = tableData.find((item) => item._id === id);
+      const selectedItem = data.find((item) => item._id === id);
       if (selectedItem) {
         setFormData({
           name: selectedItem.name,
@@ -36,8 +41,8 @@ const Billing = () => {
     setSelectedItemId(id);
     setModalOpen(true);
   };
-  
 
+  // Open the modal with an empty form
   const handleBill = () => {
     setModalOpen(true);
     setFormData({
@@ -47,44 +52,51 @@ const Billing = () => {
       amount: "",
     });
   };
+
+  // Close the modal
   const handleCloseModal = () => {
     setModalOpen(false);
   };
 
+  // Handle form input changes
   const handleChange = (e) => {
-    //console.log(e.target.value, e.target.name);
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       setLoading(true);
-
-      // ---------------  PUT--------------------------------
+  
       if (selectedItemId) {
-
+        // PUT operation for updating an existing record
         const url = `http://localhost:4000/api/update-billing/${selectedItemId}`;
         const response = await axios.put(url, formData);
+        const responseData = response.data;
+  
+        if (responseData.success) {
 
-        if (response.data.success) {
-          // Add the new record to the table data
-          setTableData((prevData) => [...prevData, response.data.data]);
+          // Update the data state with the updated record
+        setData((prevData) =>
+            prevData.map((item) =>
+              item._id === selectedItemId ? responseData.data : item
+            )
+          );
         }
-
-        console.log(response.data);
-      }
-      //--------------------- POST------------------
-      else {
+      } else {
+        // POST operation for adding a new record
         const url = "http://localhost:4000/api/add-billing";
         const response = await axios.post(url, formData);
+        console.log(response);
         if (response.data.success) {
-        // Add the new record to the form data
-        setFormData(response.data.data);
-          // Add the new record to the table data
-          setTableData((prevData) => [...prevData, response.data.data]);
+          const newRecord = response.data.data;
+          addToTotalPaidAmount(newRecord.amount); // Add the amount to the total paid amount
+          setFormData(newRecord); // Update the form data with the new record
+        setData((prevData) => [...prevData, newRecord]); // Add the new record to the table data
         }
       }
+  
       setModalOpen(false);
       setSelectedItemId(null); // Reset the selected item ID
     } catch (error) {
@@ -94,36 +106,41 @@ const Billing = () => {
     }
   };
 
- // ----------get---------
- const getData = async () => {
-  try {
-    const response = await axios.get("http://localhost:4000/api/billing-list");
-    setTableData(response.data.data);
-  } catch (error) {
-    console.error("Failed to fetch data:", error);
-  }
-};
-
-// Re render useEffect is very important for newly added record
-useEffect(() => {  
-  getData();
-}, [tableData]);
-
-
-  //----------------------- DELETE---------
-
-  const handleDelete = async (id) => {
+  // Fetch billing data from the API
+  const getData = async () => {
     try {
-      await axios.delete(`http://localhost:4000/api/delete-billing/${id}`);
-      // Remove the deleted record from the table data
-      setTableData((prevData) => prevData.filter((item) => item._id !== id));
+      const response = await axios.get(
+        "http://localhost:4000/api/billing-list"
+      );
+    setData(response.data.data);
     } catch (error) {
-      console.log(error);
+      console.error("Failed to fetch data:", error);
     }
   };
 
+  // Fetch data on component mount and whenever data changes
+  useEffect(() => {
+    getData();
+  }, [data]);
+
+// Handle deletion of a billing record
+const handleDelete = async (id) => {
+  try {
+    await axios.delete(`http://localhost:4000/api/delete-billing/${id}`);
+    const deletedRecord = data.find((item) => item._id === id);
+    if (deletedRecord) {
+      subtractFromTotalPaidAmount(deletedRecord.amount); // Decrease the total paid amount by the deleted record's amount
+      setData((prevData) => prevData.filter((item) => item._id !== id));
+    }
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+
   return (
     <div className="mx-auto container">
+      {/* Billing header */}
       <div className="flex justify-between bg-slate-300 my-4">
         <div className="flex items-center">
           <h2 className="text-2xl font-bold">Billing</h2>
@@ -133,6 +150,7 @@ useEffect(() => {
             className="border border-gray-300 rounded px-4 py-2 ml-4"
           />
         </div>
+        {/* Add bill button */}
         <button
           onClick={handleBill}
           className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
@@ -141,12 +159,16 @@ useEffect(() => {
         </button>
       </div>
 
+      {/* Modal */}
       {isModalOpen && (
         <>
           <div className="fixed inset-0 bg-black opacity-50 z-20"></div>
           <div className="fixed inset-0 flex items-center justify-center z-30">
             <div className="bg-white p-4 shadow-lg rounded">
-            <h2 className="text-2xl font-bold mb-4">{selectedItemId !== null ? 'Edit' : 'ADD'}</h2>
+              <h2 className="text-2xl font-bold mb-4">
+                {selectedItemId !== null ? "Edit" : "ADD"}
+              </h2>
+              {/* Billing form */}
               <form onSubmit={handleSubmit}>
                 <div className="flex flex-col mb-4">
                   <label htmlFor="name">Name:</label>
@@ -192,6 +214,7 @@ useEffect(() => {
                     className="border border-gray-300 rounded px-4 py-2"
                   />
                 </div>
+                {/* Submit and cancel buttons */}
                 <button
                   type="submit"
                   className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
@@ -211,7 +234,7 @@ useEffect(() => {
         </>
       )}
 
-      {/* ---------TABLE---------   */}
+      {/* Billing table */}
       <table className="border border-gray-300 mx-auto container">
         <thead>
           <tr>
@@ -219,7 +242,7 @@ useEffect(() => {
             <th className="border border-gray-300 px-4 py-2">Full Name</th>
             <th className="border border-gray-300 px-4 py-2">Email</th>
             <th className="border border-gray-300 px-4 py-2">Phone</th>
-            <th className="border border-gray-300 px-4 py-2">Paid Amount</th>
+            <th className="border border-gray-300 px-4 py-2">Amount</th>
             <th className="border border-gray-300 px-4 py-2">Action</th>
           </tr>
         </thead>
@@ -232,8 +255,9 @@ useEffect(() => {
             </tr>
           ) : (
             <>
-              {Array.isArray(tableData) && tableData.length > 0 ? (
-                tableData.map((item) => (
+              {/* Render table rows */}
+              {Array.isArray(data) && data.length > 0 ? (
+                data.map((item) => (
                   <tr key={item._id}>
                     <td className="border border-gray-300 px-4 py-2">
                       {isLoading ? <h2>Generating Id...</h2> : item._id}
@@ -252,6 +276,7 @@ useEffect(() => {
                       {item.amount}
                     </td>
                     <td className="border border-gray-300 px-4 py-2">
+                      {/* Edit and delete buttons */}
                       <button
                         onClick={() => handleModal(item._id)}
                         className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-2"
@@ -277,7 +302,6 @@ useEffect(() => {
           )}
         </tbody>
       </table>
-    
     </div>
   );
 };

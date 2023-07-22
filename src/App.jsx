@@ -9,26 +9,29 @@ import Login from "./Components/Authentication/Login/Login";
 import Register from "./Components/Authentication/Register/Register";
 import UserProvider from "./context/userContext";
 import ProtectedRoute from "./Components/Authentication/ProtectedRoute/ProtectedRoute";
+import { PaidAmountProvider } from "./context/PaidAmountContext";
 
 function App() {
   return (
     <>
       <UserProvider>
-        <Header />
+        <PaidAmountProvider>
+          <Header />
 
-        <Routes>
-          <Route path="/" element={<Home />} />
+          <Routes>
+            <Route path="/" element={<Home />} />
 
-          <Route element={<ProtectedRoute />}>
-            <Route path="/billing" element={<Billing />} />
-            <Route path="/about" element={<About />} />
-          </Route>
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+            <Route element={<ProtectedRoute />}>
+              <Route path="/billing" element={<Billing />} />
+              <Route path="/about" element={<About />} />
+            </Route>
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
 
-        <Footer />
+          <Footer />
+        </PaidAmountProvider>
       </UserProvider>
     </>
   );

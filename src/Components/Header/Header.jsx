@@ -1,9 +1,12 @@
 import { Link } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
+import { useContext } from "react";
+import { PaidAmountContext } from "../../context/PaidAmountContext";
 
 const Header = () => {
   const { user, setUser } = useAuth();
-  console.log(user);
+  const { totalPaidAmount } = useContext(PaidAmountContext);
+  
   const handleLogout = () => {
     setUser(null); // Clear the user state
     localStorage.removeItem("token"); // Remove the token from localStorage
@@ -25,7 +28,7 @@ const Header = () => {
           </Link>
           <div className="flex items-center">
             <span className="text-gray-600 mr-2">Paid total:</span>
-            <span className="text-green-500 font-bold">$ 0</span>
+            <span className="text-green-500 font-bold">$ {totalPaidAmount} </span>
           </div>
           <div className="flex items-center">
             <Link
