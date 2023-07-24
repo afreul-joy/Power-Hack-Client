@@ -70,6 +70,19 @@ const Billing = () => {
     try {
       setLoading(true);
 
+          // Email validation using regular expression
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailPattern.test(formData.email)) {
+      alert("Please enter a valid email address.");
+      return;
+    }
+
+    // Phone number validation
+    if (formData.phone.length !== 11 || isNaN(formData.phone)) {
+      alert("Phone number should be 11 digits.");
+      return;
+    }
+    
       if (selectedItemId) {
         // PUT operation for updating an existing record
         const url = `http://localhost:4000/api/update-billing/${selectedItemId}`;
