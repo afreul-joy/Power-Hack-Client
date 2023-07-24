@@ -1,6 +1,8 @@
 import { useContext, useEffect, useState } from "react";
 import axios from "axios";
 import { PaidAmountContext } from "../../context/PaidAmountContext";
+import Pagination from "../../Components/Pagination/Pagination";
+import "../../Components/Pagination/pagination.css";
 
 const Billing = () => {
   // State variables
@@ -135,6 +137,24 @@ const Billing = () => {
     }
   };
 
+  //-------------------- PAGINATION SETUP--------------------
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(5);
+  const totalItems = data.length;
+  const totalPages = Math.ceil(totalItems / pageSize);
+  const startIndex = (currentPage - 1) * pageSize;
+  const endIndex = startIndex + pageSize;
+  const currentData = data.slice(startIndex, endIndex);
+
+  const handlePageSizeChange = (e) => {
+    const size = parseInt(e.target.value);
+    setPageSize(size);
+    setCurrentPage(1); // Reset to the first page when changing page size
+  };
+
+  // Search text state
+  const [searchText, setSearchText] = useState("");
+
   return (
     <div className="mx-auto container">
       {/* Billing header */}
@@ -144,6 +164,7 @@ const Billing = () => {
           <input
             type="text"
             placeholder="Search"
+            onChange={(e) => setSearchText(e.target.value)}
             className="border border-gray-300 rounded px-4 py-2 ml-4"
           />
         </div>
@@ -253,43 +274,55 @@ const Billing = () => {
           ) : (
             <>
               {/* Render table rows */}
-              {Array.isArray(data) && data.length > 0 ? (
-                data.map((item) => (
-                  <tr key={item._id}>
-                    <td className="border border-gray-300 px-4 py-2">
-                      {isLoading ? <h2>Generating Id...</h2> : item._id}
-                    </td>
-                    <td className="border border-gray-300 px-4 py-2">
-                      {" "}
-                      {item.name}
-                    </td>
-                    <td className="border border-gray-300 px-4 py-2">
-                      {item.email}
-                    </td>
-                    <td className="border border-gray-300 px-4 py-2">
-                      {item.phone}
-                    </td>
-                    <td className="border border-gray-300 px-4 py-2">
-                      {item.amount}
-                    </td>
-                    <td className="border border-gray-300 px-4 py-2">
-                      {/* Edit and delete buttons */}
-                      <button
-                        onClick={() => handleModal(item._id)}
-                        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-2"
-                      >
-                        Edit
-                      </button>
+              {Array.isArray(currentData) && currentData.length > 0 ? (
+                currentData
+                  .filter((eachData) => {
+                    return (
+                      searchText.toLowerCase() === "" ||
+                      eachData.name
+                        .toLowerCase()
+                        .includes(searchText.toLowerCase()) ||
+                      eachData.email
+                        .toLowerCase()
+                        .includes(searchText.toLowerCase())
+                    );
+                  })
+                  .map((item) => (
+                    <tr key={item._id}>
+                      <td className="border border-gray-300 px-4 py-2">
+                        {isLoading ? <h2>Generating Id...</h2> : item._id}
+                      </td>
+                      <td className="border border-gray-300 px-4 py-2">
+                        {" "}
+                        {item.name}
+                      </td>
+                      <td className="border border-gray-300 px-4 py-2">
+                        {item.email}
+                      </td>
+                      <td className="border border-gray-300 px-4 py-2">
+                        {item.phone}
+                      </td>
+                      <td className="border border-gray-300 px-4 py-2">
+                        {item.amount}
+                      </td>
+                      <td className="border border-gray-300 px-4 py-2">
+                        {/* Edit and delete buttons */}
+                        <button
+                          onClick={() => handleModal(item._id)}
+                          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-2"
+                        >
+                          Edit
+                        </button>
 
-                      <button
-                        onClick={() => handleDelete(item._id)}
-                        className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
-                      >
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-                ))
+                        <button
+                          onClick={() => handleDelete(item._id)}
+                          className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))
               ) : (
                 <tr>
                   <td colSpan="6">Loading....</td>
@@ -300,8 +333,28 @@ const Billing = () => {
         </tbody>
       </table>
 
+      {/* Page Size select */}
+      <div className="pagination-container">
+        <label htmlFor="pageSize">Page Size: </label>
+        <select
+          className="page-size-select"
+          id="pageSize"
+          value={pageSize}
+          onChange={handlePageSizeChange}
+        >
+          <option value={5}>5</option>
+          <option value={10}>10</option>
+          <option value={15}>15</option>
+        </select>
+      </div>
 
-
+      <Pagination
+        totalPages={totalPages}
+        setCurrentPage={setCurrentPage}
+        currentPage={currentPage}
+        data={data}
+        pageSize={pageSize} // Pass pageSize as a prop
+      />
     </div>
   );
 };
