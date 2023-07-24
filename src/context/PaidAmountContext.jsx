@@ -9,12 +9,10 @@ export const PaidAmountProvider = ({ children }) => {
   const [totalPaidAmount, setTotalPaidAmount] = useState(0);
 
   const addToTotalPaidAmount = (amount) => {
-    console.log("addToTotalPaidAmount:", amount);
     setTotalPaidAmount((prevAmount) => prevAmount + amount);
   };
 
   const subtractFromTotalPaidAmount = (amount) => {
-    console.log("subtractFromTotalPaidAmount:", amount);
     setTotalPaidAmount((prevAmount) => prevAmount - amount);
   };
 

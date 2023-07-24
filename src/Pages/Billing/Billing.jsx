@@ -11,12 +11,11 @@ const Billing = () => {
     phone: "",
     amount: "",
   }); // Form data state
-  const [data,setData] = useState([]); // Billing data state
+  const [data, setData] = useState([]); // Billing data state
   const [isLoading, setLoading] = useState(false); // Loading state
   const [selectedItemId, setSelectedItemId] = useState(null); // Selected item ID state
-  const { addToTotalPaidAmount } = useContext(PaidAmountContext); // PaidAmountContext for updating total paid amount
-  const { subtractFromTotalPaidAmount} = useContext(PaidAmountContext);
-
+  const { addToTotalPaidAmount, subtractFromTotalPaidAmount } =
+    useContext(PaidAmountContext);
   // Open the modal and populate the form data with the selected item
   const handleModal = (id = null) => {
     if (id) {
@@ -68,17 +67,16 @@ const Billing = () => {
     e.preventDefault();
     try {
       setLoading(true);
-  
+
       if (selectedItemId) {
         // PUT operation for updating an existing record
         const url = `http://localhost:4000/api/update-billing/${selectedItemId}`;
         const response = await axios.put(url, formData);
         const responseData = response.data;
-  
-        if (responseData.success) {
 
+        if (responseData.success) {
           // Update the data state with the updated record
-        setData((prevData) =>
+          setData((prevData) =>
             prevData.map((item) =>
               item._id === selectedItemId ? responseData.data : item
             )
@@ -93,10 +91,10 @@ const Billing = () => {
           const newRecord = response.data.data;
           addToTotalPaidAmount(newRecord.amount); // Add the amount to the total paid amount
           setFormData(newRecord); // Update the form data with the new record
-        setData((prevData) => [...prevData, newRecord]); // Add the new record to the table data
+          setData((prevData) => [...prevData, newRecord]); // Add the new record to the table data
         }
       }
-  
+
       setModalOpen(false);
       setSelectedItemId(null); // Reset the selected item ID
     } catch (error) {
@@ -112,7 +110,7 @@ const Billing = () => {
       const response = await axios.get(
         "http://localhost:4000/api/billing-list"
       );
-    setData(response.data.data);
+      setData(response.data.data);
     } catch (error) {
       console.error("Failed to fetch data:", error);
     }
@@ -123,20 +121,19 @@ const Billing = () => {
     getData();
   }, [data]);
 
-// Handle deletion of a billing record
-const handleDelete = async (id) => {
-  try {
-    await axios.delete(`http://localhost:4000/api/delete-billing/${id}`);
-    const deletedRecord = data.find((item) => item._id === id);
-    if (deletedRecord) {
-      subtractFromTotalPaidAmount(deletedRecord.amount); // Decrease the total paid amount by the deleted record's amount
-      setData((prevData) => prevData.filter((item) => item._id !== id));
+  // Handle deletion of a billing record
+  const handleDelete = async (id) => {
+    try {
+      await axios.delete(`http://localhost:4000/api/delete-billing/${id}`);
+      const deletedRecord = data.find((item) => item._id === id);
+      if (deletedRecord) {
+        subtractFromTotalPaidAmount(deletedRecord.amount); // Decrease the total paid amount by the deleted record's amount
+        setData((prevData) => prevData.filter((item) => item._id !== id));
+      }
+    } catch (error) {
+      console.log(error);
     }
-  } catch (error) {
-    console.log(error);
-  }
-};
-
+  };
 
   return (
     <div className="mx-auto container">
@@ -302,6 +299,9 @@ const handleDelete = async (id) => {
           )}
         </tbody>
       </table>
+
+
+
     </div>
   );
 };
